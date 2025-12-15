@@ -2,6 +2,14 @@ package com.example.helloworld
 
 import kotlin.math.max
 
+/**
+ * 函数可见性修饰符
+ *
+ * 1. `public`，所有类可见，默认
+ * 1. `internal`，同一模块中的类可见
+ * 1. `protected`，当前类、子类可见
+ * 1. `private`，当前类可见
+ */
 fun main() {
     // if条件语句
     // ifFunc()
@@ -16,10 +24,26 @@ fun main() {
     // for-in循环语句
     // forInFunc()
 
-    val person = Person()
-    person.name = "Jack"
-    person.age = 19
-    person.eat()
+    // 封装、继承与多态
+    // val student = Student("Jack", 19)
+    // student.eat()
+    // doStudy(student)
+
+    // 数据类
+    // val cellPhone1 = CellPhone("Samsung", 1299.99)
+    // val cellPhone2 = CellPhone("Samsung", 1299.99)
+    // println(cellPhone1)
+    // println("cellPhone1 equals cellPhone2 = " + (cellPhone1 == cellPhone2))
+
+    // 单例类
+    // Singleton.singletonTest()
+
+    // 集合的Lambda函数式API
+    // lamdbaFunc()
+    // lamdbaJavaFunc()
+
+    // 键值对方式传参时，无所谓键值对的顺序
+    // printParams(str = "hello", num = 100)
 }
 
 // <editor-fold defaultstate="collapsed" desc="if条件语句">
@@ -127,3 +151,98 @@ fun forInFunc() {
     }
 }
 // </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="封装、继承与多态">
+/**
+ * 这里为了向你演示一下多态编程的特性，我故意将代码写得复杂了一点。
+ *
+ * 首先创建了一个Student类的实例，本来是可以直接调用该实例的readBooks()和doHomework()函数的，但是我没有这么做，而是将它传入到了doStudy()函数中。
+ * doStudy()函数接收一个Study类型的参数，由于Student类实现了Study接口，因此Student类的实例是可以传递给doStudy()函数的，
+ * 接下来我们调用了Study接口的readBooks()和doHomework()函数，这种就叫作面向接口编程，也可以称为多态。
+ */
+fun doStudy(study: Study?) {
+    /*
+    if (study != null) {
+        study.readBooks()
+        study.doHomework()
+    }
+    */
+
+    // study?.readBooks() // 这样就相当于每次都要判空一下
+    // study?.doHomework() // 这样就相当于每次都要判空一下
+
+    study?.let {
+        it.readBooks()
+        it.doHomework()
+    }
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="集合的Lambda函数式API">
+/**
+ * 集合的Lambda函数式API，Lambda就是一小段可以作为参数传递的代码
+ *
+ * 格式：{ 参数名: 参数类型, 参数名: 参数类型 -> 函数体 }
+ *
+ * 函数体中可以编写任意行代码，最后一行代码自动作为Lamdba表达式的返回值
+ */
+fun lamdbaFunc() {
+    val list = listOf("Apple", "Banana", "Orange", "Pear", "Grape", "Watermelon")
+
+    // val lamdba = { fruit: String -> fruit.length }
+    // val maxLengthFruit = list.maxBy(lamdba)
+
+    // 当Lambda参数是函数的最后一个参数时，可以将Lambda表达式移到函数括号的外面
+    // val maxLengthFruit = list.maxBy({ fruit: String -> fruit.length })
+
+    // Lambda参数是函数的唯一一个参数的话，还可以将函数的括号省略
+    // val maxLengthFruit = list.maxBy() { fruit: String -> fruit.length }
+
+    // 由于Kotlin拥有出色的类型推导机制，Lambda表达式中的参数列表其实在大多数情况下不必声明参数类型
+    // val maxLengthFruit = list.maxBy { fruit -> fruit.length }
+
+    // Lambda表达式的参数列表中只有一个参数时，也不必声明参数名，而是可以使用it关键字来代替
+    val maxLengthFruit = list.maxBy { it.length }
+    println("max length fruit is " + maxLengthFruit)
+
+    val newList = list.filter { it.length <= 5 }.map { it.toUpperCase() }
+    for (fruit in newList) {
+        println(fruit)
+    }
+
+    val anyResult = list.any { it.length <= 5 } // 判断集合中是否至少存在一个元素满足指定条件
+    val allResult = list.all { it.length <= 5 } // 判断集合中是否所有元素都满足指定条件
+    println("anyResult is " + anyResult + ", allResult is " + allResult)
+}
+
+/**
+ * 在Kotlin代码中调用一个Java方法，并且该方法接收一个Java单抽象方法接口参数，就可以使用函数式API
+ */
+fun lamdbaJavaFunc() {
+    Thread(object : Runnable { // 匿名类写法
+        override fun run() {
+            println("Thread1 is running")
+        }
+    }).start()
+
+    // Lambda写法，即使这里没有显式地重写run()方法，Kotlin也能自动明白Runnable后面的Lambda表达式就是要在run()方法中实现的内容。
+    Thread(Runnable {
+        println("Thread2 is running")
+    }).start()
+
+    // 一个Java方法的参数列表中有且仅有一个Java单抽象方法接口参数，我们还可以将接口名进行省略
+    Thread({
+        println("Thread3 is running")
+    }).start()
+
+    // 当Lambda参数是函数的最后一个参数时，可以将Lambda表达式移到函数括号的外面
+    // Lambda参数是函数的唯一一个参数的话，还可以将函数的括号省略
+    Thread {
+        println("Thread4 is running")
+    }.start()
+}
+// </editor-fold>
+
+fun printParams(num: Int = 100, str: String) {
+    println("num is $num, str is $str")
+}

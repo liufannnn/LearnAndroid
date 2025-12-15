@@ -63,6 +63,12 @@ class GoodStudent1B4 : Student1B(sno = "123", grade = 1, name = "Jack", age = 19
 }
 
 /**
+ * 给参数设定默认值代替次构造函数
+ */
+class Student1B1(val sno: String = "", val grade: Int = 0, name: String = "", age: Int = 0) : Person1(name, age) {
+}
+
+/**
  * 一种非常特殊的情况：类中只有次构造函数，没有主构造函数。
  *
  * 这种情况真的十分少见，但在Kotlin中是允许的。当一个类没有显式地定义主构造函数且定义了次构造函数时，它就是没有主构造函数的。
@@ -74,4 +80,19 @@ class GoodStudent1B4 : Student1B(sno = "123", grade = 1, name = "Jack", age = 19
 class Student1C : Person1 {
     constructor(name: String, age: Int) : super(name, age) {
     }
+}
+
+/**
+ * 接口的后面不用加括号，因为他没有构造函数可以去调用
+ */
+class Student(name: String, age: Int) : Person1(name, age), Study {
+
+    override fun readBooks() {
+        println(name + " is reading.")
+    }
+    /*
+    override fun doHomework() {
+        println(name + " is doing homework.")
+    }
+    */
 }
