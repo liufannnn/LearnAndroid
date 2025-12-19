@@ -1,0 +1,8 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="JavadocDeclaration" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ADDITIONAL_TAGS" value="byte:,short:,int:,long:,值范围公式:,float:,double:,与(&amp;):,或(|):,非(~),与(&amp;),或(|),值范围公式,long,int,short,byte,float,double,异或(^),比较运算,与运算,或运算,非运算,优先级,char,String,特点3,特点2,特点1,%d,%x,%f,%e,%s,case" />
+    </inspection_tool>
+  </profile>
+</component>
