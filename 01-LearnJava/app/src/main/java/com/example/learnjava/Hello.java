@@ -1,6 +1,9 @@
 package com.example.learnjava;
 
+import com.example.learnjava.package_sample.PersonT;
+
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Scanner;
 
 /// 一个Java源文件可以包含多个类的定义，但只能定义一个public类，且public类名必须与文件名一致。
@@ -13,7 +16,7 @@ import java.util.Scanner;
 public class Hello {
     public static void main(String[] args) {
         helloWorld();
-        Student.func();
+        Outer.func();
     }
 
     // 1、变量
@@ -1025,7 +1028,7 @@ class Group {
         /// 2、调用方可以传入 null
         group.setNamesArray(null);
         /// 3、而可变参数可以保证无法传入 null ，因为传入0个参数时，接收到的实际值是一个空数组而不是 null
-        group.setNames(null);
+//        group.setNames(null);
     }
 }
 // </editor-fold>
@@ -1074,7 +1077,7 @@ class PersonParamBind {
 }
 // </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="20、方法重载">
+// <editor-fold defaultstate="collapsed" desc="20、方法重载 Overload">
 
 class MethodOverload {
     /// 在一个类中，我们可以定义多个方法。如果有一系列方法，它们的功能都是类似的，只有参数有所不同，
@@ -1104,6 +1107,9 @@ class MethodOverload {
 
 // <editor-fold defaultstate="collapsed" desc="21、继承">
 
+/**
+ * 正常情况下，只要某个class没有 final 修饰符，那么任何类都可以从该class继承。
+ */
 class Person1 {
     protected String name;
     protected int age;
@@ -1114,16 +1120,16 @@ class Person1 {
 }
 
 /**
- * 继承
+ * 21、继承
  * <p>子类(扩展类)自动获得了父类(超类、基类)的所有字段，严禁定义与父类重名的字段!
  */
-class Student extends Person1 {
+class Student1 extends Person1 {
     /// 继承有个特点，就是子类无法访问父类的 private 字段或者 private 方法。
     ///
     /// 用 protected 修饰的字段可以被子类访问。
     protected int score; // 严禁定义与父类重名的字段!
 
-    public Student(String name, int age, int score) {
+    public Student1(String name, int age, int score) {
         /// 如果父类没有默认的构造方法，子类就必须显式调用 super() 并给出参数以便让编译器定位到父类的一个合适的构造方法。
         /// 这里还顺带引出了另一个问题:即子类 不会继承 任何父类的构造方法。子类默认的构造方法是编译 器自动生成的，不是继承的。
         super(name, age);
@@ -1136,10 +1142,481 @@ class Student extends Person1 {
     }
 
     static void func() {
-        Student s = new Student("a", 10, 100);
+        Student1 s = new Student1("a", 10, 100);
         System.out.println(s.name);
+
+        /// 21.1 向上转型
+        ///      因为 Student1 继承自 Person1，因此它拥有 Person1 的全部功能。
+        ///      向上转型实际上是把一个子类型安全地变为更加抽象的父类型:
+        Person1 p1 = s; // upcasting, ok
+        Object o1 = p1; // upcasting, ok
+        Object o2 = s; // upcasting, ok
+
+        /// 21.2 向下转型
+        ///      如果把一个父类类型强制转型为子类类型，就是向下转型
+        Person1 p2 = new Person1("p2", 46);
+        // Person1 类型 p1 实际指向 Student1 实例, 在向下转型的时候，把 p1 转型为 Student1 会成功, 因为 p1 确实指向 Student1 实例
+        Student1 s1 = (Student1) p1; // downcasting, ok
+        // Person1 类型变量 p2 实际指向 Person1 实例。 在向下转型的时候，把 p2 转型为 Student1 会失败，
+        // 因为 p2 的实际类型是 Person1 ，不能把父类变为子类，因为子类功能比父类多，多的功能无法凭空变出来。
+//        Student1 s2 = (Student1) p2; // runtime error! ClassCastException!
+
+        /// 21.3 instanceof 操作符
+        /// 为了避免向下转型出错，Java提供了 instanceof 操作符，可以先判断一个实例究竟是不是某种类型
+        System.out.println(p2 instanceof Person1); // true
+        System.out.println(p2 instanceof Student1); // false
+
+        System.out.println(p1 instanceof Person1); // true
+        System.out.println(p1 instanceof Student1); // true
+
+        Student1 n = null;
+        // instanceof 实际上判断一个变量所指向的实例是否是指定类型，或者这个类型的子类。如果一个引用变量为 null ，
+        // 那么对任何 instanceof 的判断都为 false
+        System.out.println(n instanceof Student1); // false
+
+        Object obj = "hello obj";
+        if (obj instanceof String) { // 利用这个判断条件
+            // 只有判断成功才会向下转型
+            String str = (String) obj;
+            System.out.println(str.toUpperCase());
+        }
+
+        /// 21.3.1 Java 14 开始，判断 instanceof 后，可以直接转型为指定变量，避免再次强制转型
+        if (obj instanceof String str) {
+            System.out.println(str.toUpperCase() + " Java 14");
+        }
+    }
+}
+
+/**
+ * 21.4、Java15，限定范围继承
+ * <p> 允许使用 sealed 修饰 class，并通过 permits 明确写出能够从该 class 继承的子类名称。
+ */
+sealed class Shape permits Rect /*, Circle, Triangel*/ {
+}
+final class Rect extends Shape {
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="22、多态">
+
+class Person2 {
+    protected String name;
+
+    public void run() {
+        System.out.println("Person2.run");
+    }
+}
+class Student2 extends Person2 {
+    /**
+     * Override和Overload不同的是，如果方法签名不同，就是Overload，Overload方法是一个新方法;
+     * 如果方法签名相同，并且返回值也相同，就是 Override
+     * <p>
+     * 注意 @Override 不是必须的
+     */
+    @Override
+    public void run() {
+        System.out.println("Student2.run");
+    }
+    /// 方法重载 Overload，因为参数不同
+    void run(String s) {
+    }
+
+    /// 方法名相同，方法参数相同，但方法返回值不同，也是Overload。但在Java程序中，出现这种情况，编译器会报错。
+//    int run(String s) {
+//    }
+
+    static void func() {
+        /// 22、多态
+        /// 我们已经知道，引用变量的声明类型可能与其实际类型不符
+        /// 实际上调用的方法是 Student2 的 run() 方法，因此可得出结论。
+        /// Java的实例方法调用是基于运行时的实际类型的动态调用，而非变量的声明类型。
+        /// 这个非常重要的特性在面向对象编程中称之为多态。它的英文拼写非常复杂:Polymorphic。
+        /// 多态是指，针对某个类型的方法调用，其真正执行的方法取决于运行时期实际类型的方法。
+        Person2 p = new Student2();
+        p.run(); // 应该打印Person2.run还是Student2.run?
+        // 有同学会说，从上面的代码一看就明白，肯定调用的是 Student 的 run() 方法啊。
+    }
+
+    static void runTwice(Person2 p) {
+        p.run(); // 我们是无法知道传入的参数实际类型究竟是 Person2, 还是他的子类
+    }
+}
+
+/// 22.1、多态的应用
+///      假设我们定义一种收入，需要给它报税，那么先定义一个 Income 类
+class Income {
+    protected double income;
+
+    public Income(double income) {
+        this.income = income;
+    }
+
+    public double getTax() {
+        return  income * 0.1; // 税率 10%
+    }
+}
+
+class Salary extends Income {
+
+    public Salary(double income) {
+        super(income);
+    }
+
+    @Override
+    public double getTax() {
+        if (income <= 5000) {
+            return 0;
+        }
+        return (income - 5000) * 0.2;
+    }
+}
+
+class StateCouncilSpecialAllowance extends Income { // 享受国务院津贴
+
+    public StateCouncilSpecialAllowance(double income) {
+        super(income);
+    }
+
+    @Override
+    public double getTax() {
+        return 0;
+    }
+}
+
+class Tax {
+    static double totalTax(Income... incomes) {
+        double total = 0;
+        for (Income income : incomes) {
+            total = total + income.getTax();
+        }
+        return total;
+    }
+
+    static void calculate() {
+        // 给一个有普通收入、工资收入和享受国务院特殊津贴的小伙伴算税:
+        Income[] incomes = new Income[] {
+                new Income(3000),
+                new Salary(10000),
+                new StateCouncilSpecialAllowance(15000)
+        };
+        System.out.println(Tax.totalTax(incomes));
     }
 }
 // </editor-fold>
 
-/// 阻止继承
+// <editor-fold defaultstate="collapsed" desc="23、覆写 Object 方法">
+
+/// 因为所有的 class 最终都继承自 Object，而 Object 定义了几个重要的方法:
+/// toString()：把 instance 输出为 String
+/// equals()：  判断两个instance是否逻辑相等;
+/// hashCode()：计算一个instance的哈希值。
+class Person3 {
+    protected String name;
+
+    @Override
+    public String toString() {
+        return "Person3:name=" + name;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        // 当且仅当obj为Person3类型:
+        if (obj instanceof Person3 p) {
+            // 并且name字段相同时，返回true:
+            return this.name.equals(p.name);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.name.hashCode();
+    }
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="24、阻止继承 final 修饰符">
+
+/// final 修饰的类不能被继承
+/// final 修饰的方法不能被覆写Override
+/// final 修饰的字段在初始化后不能重新赋值
+final class Person4 {
+    /// 用 final 修饰的字段在初始化后不能被修改
+    public final String name;
+
+    public Person4(String name) {
+        this.name = name; // 可以在构造方法中初始化final字段
+    }
+
+    /// final 修饰的方法不能被 Override 覆盖（覆写）
+    public final String hello() {
+        return "Hello，" + this.name;
+    }
+}
+
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="25、抽象类 abstract class">
+/// 25.1、抽象类
+///
+/// 我们无法实例化一个抽象类，抽象类本身被设计成只能用于被继承，可以强迫子类实现其定义的抽象方法。
+abstract class Person5 {
+    protected String name;
+
+    /// 把一个方法声明为 abstract，表示它是一个抽象方法，本身没有实现任何方法语句。
+    ///
+    /// 因为这个抽象方法本身是无法执行的，所以， Person5 类也无法被实例化。必须把 Person5 类本身也声明为 abstract
+    abstract void run();
+}
+
+class Student5 extends Person5 {
+    @Override
+    void run() {
+        System.out.println("Student5.run");
+    }
+}
+
+class Teacher5 extends Person5 {
+    @Override
+    void run() {
+        System.out.println("Teacher5.run");
+    }
+
+    /**
+     * 25.2、面向抽象编程
+     */
+    static void func() {
+        Person5 p1 = new Student5();
+        Person5 p2 = new Teacher5();
+        Teacher5.personRun(p1);
+        Teacher5.personRun(p2);
+    }
+    static void personRun(Person5 p) {
+        p.run();
+    }
+}
+
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="26、接口 interface">
+/// 如果一个抽象类没有字段，所有方法全部都是抽象方法，就可以把该抽象类改写为接口 interface
+///
+/// 所谓 interface ，就是比抽象类还要抽象的纯抽象接口，因为它连字段都不能有。
+///
+/// 接口定义的所有方法默认都是 public abstract 的，所以这两个修饰符不需要写出来
+interface Person6 extends HelloYo {
+    void run();
+
+    /**
+     * 实现类可以不必覆写 default 方法
+     * <p>
+     * default 方法的目的是，当我们需要给接口新增一个方法时，会涉及到修改全部子类。如果新增的是 default 方法，
+     * 那么子类就不必全部修改，只需要在需要覆写的地方去覆写新增方法。
+     */
+    default String getName() {
+        return "Person6";
+    }
+}
+
+/// interface 是一个纯抽象类，所以它不能定义实例字段。
+///
+/// 但是 interface 是可以有静态字段的，并且静态字段必须为 final 类型。
+interface HelloYo {
+    void hello();
+
+    /// 实际上，因为 interface 的字段只能是 public static final 类型，所以我们可以把这些修饰符都去掉
+    ///
+    /// 编译器会自动把该字段变为 public static final 类型。
+    int MALE = 1; // public static final int MALE = 1;
+}
+
+/// 接口可以实现多个
+class Student6 implements Person6 /* , HelloX */  {
+    @Override
+    public void run() {
+    }
+
+    @Override
+    public String getName() {
+        return "";
+    }
+
+    @Override
+    public void hello() {
+    }
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="27、静态字段和静态方法 static">
+
+/// 实例字段在每个实例中都有自己的一个独立“空间”，但是静态字段只有一个共享“空间”，所有实例都会共享该字段。
+class Person7 {
+    String name;
+    int age;
+    /// 27.1、静态字段
+    static int number;
+
+    Person7(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    /// 27.2、静态方法
+    static void func() {
+        Person7 ming = new Person7("Ming", 12);
+        Person7 hong = new Person7("Hong", 18);
+        ming.number = 88;
+        System.out.println(hong.number); // 88
+        /// 对于静态字段，无论修改哪个实例的静态字段，效果都是一样的:所有实例的静态字段都被修改了，原因是静态字段并不属于实例
+        /// 虽然实例可以访问静态字段，但是它们指向的其实都是 Person7 class 的静态字段。
+        ///
+        /// 因此，不推荐用 (实例变量.静态字段) 去访问静态字段，因为在Java程序中，实例对象并没有静态字段。
+        /// 在代码中，实例对象能访问静态字段只是因为编译器可以根据实例类型自动转换为 类名.静态字段
+        hong.number = 99;
+        System.out.println(ming.number); // 99
+    }
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="28、package 和 import">
+
+/// 在一个 class 中，我们总会引用其他的 class
+class TestPackage {
+    static void func() {
+        /// 28.1、直接写出完整类名
+//        var p = new com.example.learnjava.package_sample.PersonT(); // 很显然，每次写完整类名比较痛苦。
+
+        /// 28.2、import 语句，import com.example.learnjava.package_sample.PersonT;
+        ///
+        ///                   import com.example.learnjava.package_sample.*;
+        ///                          表示把这个包下面的所有 class 都导入进来(但不包括子包的 class )
+        ///                          不推荐这种写法，因为在导入了多个包后，很难看出 PersonT 类属于哪个包
+        ///
+        ///                   import static com.example.learnjava.package_sample.PersonT.*;
+        ///                          它可以导入一个类的静态字段和静态方法，很少使用
+        ///
+        /// 如果有两个 class 名称相同，
+        /// 例如 mr.jun.Arrays 和 java.util.Arrays，那么只能 import 其中一个，另一个必须写完整类名。
+        ///
+        /// 最佳实践：
+        ///          为了避免名字冲突，我们需要确定唯一的包名。推荐的做法是使用倒置的域名来确保唯一性。
+        ///          要注意不要和 java.lang 包的类重名，即自己的类不要使用这些名字：String、System等
+        ///          要注意也不要和JDK常用类重名：java.util.List、java.text.Format等
+        PersonT p = new PersonT();
+    }
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="29、作用域 public、package、protected、 private和内部类">
+
+/// public,    定义为 public 的 class 、 interface 可以被其他任何类访问
+///            定义为 public 的 field 、 method 可以被其他类访问，前提是首先有访问 class 的权限
+///
+/// private,   定义为 private 的 field 、 method 无法被其他类访问
+///            private 访问权限被限定在 class 的内部，而且与方法声明顺序无关。
+///            推荐把 private 方法放到后面，因为 public 方法定义了类对外提供的功能，阅读代码的时候，应该先关注 public 方法
+///
+/// protected, 定义为 protected 的字段和方法可以被子类访问，以及子类的子类
+///
+/// package,   包作用域是指一个类允许访问同一个 package 的没有 public、 private 修饰的 class，以及没有 public、protected、private 修饰的字段和方法。
+///
+/// 最佳实践    如果不确定是否需要 public ，就不声明为 public ，即尽可能少地暴露对外的字段和方法。
+///            把方法定义为 package 有助于测试，因为测试类和被测试类只要位于同一个 package，测试代码就可以访问被测试类的 package 权限方法。
+///            一个.java 文件只能包含一个 public 类，但可以包含多个非 public 类。如果有 public 类，文件名必须和 public 类的名字相同。
+class Outer {
+
+    private String name;
+
+    private static String NAME = "OUTER";
+
+    Outer(String name) {
+        this.name = name;
+    }
+
+    protected void hi() {
+    }
+
+    private static void hello() {
+        System.out.println("private hello");
+    }
+
+    /// 29.1.1、内部类(Inner class)
+    ///
+    /// 它与普通类有个最大的不同， 就是Inner Class的实例不能单独存在，必须依附于一个Outer Class的实例。
+    class Inner {
+        void hi() {
+            /// Java支持嵌套类，如果一个类内部还定义了嵌套类，那么嵌套类拥有访问 private 的权限
+            Outer.hello();
+        }
+    }
+
+    /// 29.1.2 匿名类(Anonymous Class)
+    ///
+    /// 一种定义Inner Class的方法，它不需要在Outer Class中明确地定义这个Class，而是在方法内部，通过匿名类(Anonymous Class)来定义。
+    void asyncHello() {
+        // Runnable 本身是接口， 接口是不能实例化的，所以这里实际上是定义了一个实现了 Runnable 接口的匿名类，
+        // 并且通过 new 实例化该匿名类，然后转型为 Runnable
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                // 匿名类和 Inner Class一样，可以访问Outer Class的 private 字段和方法。
+                // 之所以我们要定义匿名类，是因为在这里我们通常不关心类名，比直接定义Inner Class可以少写很多代码。
+                // 观察Java编译器编译后的文件可以发现， Outer 类被编译为 Outer.class ，而匿名类被编译为 Outer$1.class 。
+                // 如果有多个匿名类，Java编译器会将每个匿名类依次命名为 Outer$2.class、Outer$3.class
+                System.out.println("匿名类Hello, " + Outer.this.name);
+            }
+        };
+        new Thread(r).start();
+
+        /// 除了接口外，匿名类也完全可以继承自普通类
+//        HashMap<String, String> map1 = new HashMap<>(); // 普通HashMap实例
+//        HashMap<String, String> map2 = new HashMap<>() {}; // 匿名类
+//        HashMap<String, String> map3 = new HashMap<>() { // 匿名类
+//            {
+//                put("A", "1");
+//                put("B", "2");
+//            }
+//        };
+//        System.out.println(map3.get("A"));
+    }
+
+    /**
+     * 29.1.3、静态内部类(Static Nested Class)
+     *
+     * 静态内部类与内部类(Inner Class)有很大不同，他不再依附Outer实例，而是一个完全独立的类，因此无法引用Outer.this
+     */
+    static class StaticNested {
+        void hello() {
+            System.out.println("Hello, " + Outer.NAME);
+        }
+    }
+
+    static void func () {
+        /// 要实例化一个 Inner，我们必须首先创建一个 Outer 的实例，然后，调用 Outer 实例的 new 来创建 Inner 实例
+        Outer outer = new Outer("A");
+        /// 这是因为Inner Class除了有一个 this 指向它自己，还隐含地持有一个Outer Class实例，
+        /// 可以用 Outer.this 访问这个实例。所以，实例化一个Inner Class不能脱离Outer实例。
+        ///
+        /// 观察Java编译器编译后的 文件可以发现， Outer 类被编译为 Outer.class ，而 Inner 类被编译为 Outer$Inner.class。
+        Outer.Inner inner = outer.new Inner();
+        inner.hi(); // 内部类(Inner Class)
+
+        outer.asyncHello(); // 匿名类(Anonymous Class)
+
+        Outer.StaticNested s = new Outer.StaticNested();
+        s.hello(); // 静态内部类(Static Nested Class)
+    }
+}
+
+class OuterChild extends Outer {
+
+    OuterChild(String name) {
+        super(name);
+    }
+
+    void test() {
+        hi(); // 可以访问protected方法
+    }
+}
+// </editor-fold>
