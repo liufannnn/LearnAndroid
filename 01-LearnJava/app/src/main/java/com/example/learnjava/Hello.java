@@ -16,7 +16,7 @@ import java.util.Scanner;
 public class Hello {
     public static void main(String[] args) {
         helloWorld();
-        Outer.func();
+        StringFunc.stringComparison();
     }
 
     // 1、变量
@@ -1638,3 +1638,58 @@ class OuterChild extends Outer {
 ///
 /// 只有它声明的导出的包，外部代码才被允许访问。
 // </editor-fold>
+
+/// String 是一个引用类型，本身也是一个 class。因为字符串太常用 Java 对 String 有特殊处理，可以用 "..." 表示一个字符串。
+/// String s1 = "Hello";
+/// 实际上字符串在 String 内部是通过 char[] 来表示的，因此下面写法也是可以的
+/// String s2 = new String(new char[] { 'H', 'e', 'l', 'l', 'o' });
+///
+/// Java字符串的一个重要特点就是字符串不可变。这种不可变性是通过内部的 private final char[] 字段，以及没有任何修改 char[] 的方法实现的
+class StringFunc {
+    static void stringComparison() {
+        /// 31.1、字符串比较
+        String s1 = "hello";
+        String s2 = "hello";
+        System.out.println(s1 == s2);      // true
+        System.out.println(s1.equals(s2)); // true
+        /// 从表面上看，两个字符串比较结果都为 true，但实际上那只是Java编译器在编译期，会自动把所有相同的字符串当作一个对象放入常量池，自然 s1 和 s2 的引用就是相同的。
+        /// 所以这种 == 比较返回 true 纯属巧合，像以下这样写，就不行了
+        String s3 = "HELLO".toLowerCase();
+        System.out.println(s1 == s3);      // false
+        System.out.println(s1.equals(s3)); // true
+
+        /// 31.2、搜索字符串子串
+        "Hello".indexOf("l"); // 2
+        "Hello".lastIndexOf("l"); // 3
+        "Hello".startsWith("He"); // true
+        "Hello".endsWith("lo"); // true
+
+        /// 31.3、提取字符串子串
+        "Hello".substring(2); // "llo"
+        System.out.println("Hello".substring(2, 4)); // "ll"
+
+        /// 31.4、去除首尾空白字符
+        ///       trim() 并没有改变字符串的内容，而是返回了一个新字符串
+        System.out.println(" \tHello\r\n ".trim()); // "Hello"
+        ///       strip() 方法也可以移除字符串首尾空白字符。和 trim() 不同的是，类似中文的空格字符 \u3000 也会被移除
+        System.out.println("\u3000 Hello呀\u3000".strip()); // "Hello呀"
+        System.out.println(" Hello 去左空格 ".stripLeading()); // "Hello 去左空格 "
+        System.out.println(" Hello 去右空格 ".stripTrailing()); // " Hello去右空格"
+
+        /// 31.5、判断字符串是否为空和空白字符串
+        "".isEmpty(); // true，因为字符串长度为0
+        " ".isEmpty(); // false，因为字符串长度不为0
+        " \n".isBlank(); // true，因为只包含空白字符
+        " Hello ".isBlank(); // false，因为包含非空白字符
+
+        /// 31.6、替换子字符串
+        String s = "hello";
+        s.replace('l', 'w'); // "hewwo"，所有字符'l'被替换为'w'
+        s.replace("ll", "~~"); // "he~~o"，所有子串"ll"被替换为"~~"
+        ///       正则表达式替换
+        String ss = "A,,B;C ,D";
+        System.out.println(ss.replaceAll("[\\,\\;\\s]+", ",")); // "A,B,C,D"
+
+        /// 31.7、分割字符串
+    }
+}
