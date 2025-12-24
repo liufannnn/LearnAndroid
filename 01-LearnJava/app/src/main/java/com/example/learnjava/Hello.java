@@ -1620,3 +1620,21 @@ class OuterChild extends Outer {
     }
 }
 // </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="30、模块">
+
+/// 自 Java 9 引入模块之后，Java的class访问权限 public、protected、private和默认的包访问权限，需要做些调整。
+/// 确切地说，class的这些访问权限只在一个模块内有效，模块和模块之间，例如a模块要访问b模块的某个class，必要条件是b模块明确地导出了可以访问的包。
+///
+/// 举个例子:我们编写的模块 hello.world 用到了模块 java.xml 的一个类 javax.xml.XMLConstants, 我们之所以能直接使用这个类，
+/// 是因为模块 java.xml 的 moduel-info.java 中声明若干导出：
+///
+/// module java.xml {
+///     exports java.xml;
+///     exports javax.xml.catalog;
+///     exports javax.xml.datatype;
+///     ...
+/// }
+///
+/// 只有它声明的导出的包，外部代码才被允许访问。
+// </editor-fold>
