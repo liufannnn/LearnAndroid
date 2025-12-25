@@ -1,10 +1,15 @@
 package com.example.learnjava;
 
+import android.os.Build;
+
 import com.example.learnjava.package_sample.PersonT;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.StringJoiner;
 
 /// 一个Java源文件可以包含多个类的定义，但只能定义一个public类，且public类名必须与文件名一致。
 /// 如果要定义多个public类，必须拆到多个Java源文件中。
@@ -16,7 +21,6 @@ import java.util.Scanner;
 public class Hello {
     public static void main(String[] args) {
         helloWorld();
-        StringFunc.stringComparison();
     }
 
     // 1、变量
@@ -88,9 +92,11 @@ public class Hello {
 
     // <editor-fold defaultstate="collapsed" desc="1.2、引用类型">
     /**
-     * 引用类型
+     * 引用类型，所有 class 和 interface 类型
      * <p>
-     * 引用类型的变量类似于C语言的指针，它内部存储一个“地址”，指向某个对象在内存的位置
+     * 引用类型的变量类似于C语言的指针，它内部存储一个“地址”，指向某个对象在内存的位置。
+     * 引用类型可以赋值为 null，表示空，但基本类型不能赋值为 null。
+     * 引用类型不能用 == 比较，只能用 equals()
      */
     static void helloWorld() {
         String s = "惯例：Hello World!";
@@ -102,6 +108,94 @@ public class Hello {
         String s2 = s1; // s2也是null
         String s3 = ""; // s3指向空字符串，不是null
         // 注意要区分空值 null 和空字符串 "" ，空字符串是一个有效的字符串对象，它不等于 null 。
+
+        /// 1.2.2、包装类型(Wrapper Class)
+        ///
+        /// public final class Integer {
+        ///     private final int value; // 所有包装类型都是不变类
+        /// }
+        ///
+        /// 把一个基本类型包装成引用类型，比如，想要把 int 包装成引用类型 Integer
+        /// 实际上，因为包装类型非常有用，Java核心库为每种基本类型都提供了对应的包装类型：
+        /// boolean java.lang.Boolean
+        /// byte    java.lang.Byte
+        /// short   java.lang.Short
+        /// int     java.lang.Integer
+        /// long    java.lang.Long
+        /// float   java.lang.Float
+        /// double  java.lang.Double
+        /// char    java.lang.Character
+        // int 和 Integer 可以相互转换
+        int i = 100;
+        Integer n = Integer.valueOf(i);
+        int x = n.intValue();
+
+        /// 自动装箱(Auto Boxing)，int 变为 Integer 的赋值写法
+        Integer n1 = 100; // 编译器自动使用Integer.valueOf(int)
+        /// 自动拆箱(Auto Unboxing)，Integer 变为 int 的赋值写法
+        int x1 = n1; // 编译器自动使用Integer.intValue()
+        /// 装箱和拆箱会影响代码的执行效率，因为编译后的 class 代码严格区分基本类型和引用类型的。
+        /// 并且，自动拆箱执行时可能会报 NullPointerException
+        // public class Main {
+        //    public static void main(String[] args) {
+        //        Integer n = null;
+        //        int i = n;
+        //    }
+        // }
+
+        /// 1.2.2.1、包装类型-最佳实践
+        /// 我们把能创建“新”对象的静态方法称为静态工厂方法，Integer.valueOf() 就是静态工厂方法，它尽可能地返回缓存的实例以节省内存。
+        /// 创建新对象时，优先选用静态工厂方法而不是 new 操作符。
+        Integer m1 = new Integer(100); // 方法1
+        Integer m2 = Integer.valueOf(100); // 方法2✅
+        // 方法2更好，它可能始终返回同一个 Integer，而方法1总是创建新的 Integer 实例。
+        // 方法2把内部优化留给 Integer 的实现者去做，即使在当前版本没有优化，也有可能在下一个版本进行优化。
+
+        /// 1.2.2.2、包装类型-进制转换
+        /// 在计算机内存中，只用二进制表示，不存在十进制或十六进制的表示方法，int n = 100，在内存中总是以4字节的二进制表示。
+        /// 00000000 00000000 00000000 01100100
+        /// 我们经常使用的 System.out.println(n) 是依靠核心库自动把整数格式化为10进制输出并显示在屏幕上。
+        /// 这里我们注意到程序设计的一个重要原则:数据的存储和显示要分离
+        int xx1 = Integer.parseInt("100"); // 100
+        System.out.println(xx1);
+        int x2 = Integer.parseInt("100", 16); // 256,因为按16进制解析
+        System.out.println(x2);
+
+        System.out.println(Integer.toString(100)); // "100",表示为10进制
+        System.out.println(Integer.toString(100, 36)); // "2s",表示为36进制
+        System.out.println(Integer.toHexString(100)); // "64",表示为16进制
+        System.out.println(Integer.toOctalString(100)); // "144",表示为8进制
+        System.out.println(Integer.toBinaryString(100)); // "1100100",表示为2进制
+
+        /// 1.2.2.3、包装类型-静态变量
+        // boolean只有两个值true/false，其包装类型只需要引用Boolean提供的静态字段:
+        Boolean t = Boolean.TRUE;
+        Boolean f = Boolean.FALSE;
+        // int可表示的最大/最小值:
+        int max = Integer.MAX_VALUE; // 2147483647
+        int min = Integer.MIN_VALUE; // -2147483648
+        // long类型占用的bit和byte数量:
+        int sizeOfLong = Long.SIZE; // 64 (bits)
+        int bytesOfLong = Long.BYTES; // 8 (bytes)
+        /// 最后，所有的整数和浮点数的包装类型都继承自 Number，因此可以非常方便地直接通过包装类 型获取各种基本类型:
+        // 向上转型为Number:
+        Number num = new Integer(999);
+        // 获取byte, int, long, float, double: byte b = num.byteValue();
+        int in = num.intValue();
+        long ln = num.longValue();
+        float ff = num.floatValue();
+        double df = num.doubleValue();
+
+        /// 1.2.2.4、包装类型-处理无符号整型
+        /// 在Java中，并没有无符号整型(Unsigned)的基本数据类型。 byte、 short、 int 和long 都是带符号整型，最高位是符号位。
+        /// 而C语言则提供了CPU支持的全部数据类型，包括无符号整型。无符号整型和有符号整型的转换在Java中就需要借助包装类型的静态方法完成。
+        ///
+        /// 例如，byte 是有符号整型，范围是 -128 ~ +127 ，但如果把 byte 看作无符号整型，它的范围是 0 ~ 255。
+        /// 我们把一个负的 byte 按无符号整型转换为 int:
+        byte xxx = -1;
+        byte yyy = 127;
+        System.out.println(Byte.toUnsignedInt(xxx)); // 255
+        System.out.println(Byte.toUnsignedInt(yyy)); // 127
     }
     // </editor-fold>
 
@@ -506,9 +600,9 @@ public class Hello {
     /// [常用占位符，更多格式化参数参考官网链接](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Formatter.html#syntax)：
     /// @%d 格式化输出整数
     /// @%x 格式化输出十六进制整数
-    /// @%f 格式化输出浮点数
+    /// @%f 格式化输出浮点数，占位符还可以带格式，例如 %.2f 表示显示两位小数。
     /// @%e 格式化输出科学计数法表示的浮点数
-    /// @%s 格式化字符串
+    /// @%s 格式化字符串，如果你不确定用啥占位符，那就始终用%s，因为它可以显示任何数据类型
     static void printfMethon() {
         double d = 3.1415926;
         System.out.printf("%.2f\n", d);
@@ -1639,6 +1733,8 @@ class OuterChild extends Outer {
 /// 只有它声明的导出的包，外部代码才被允许访问。
 // </editor-fold>
 
+// <editor-fold defaultstate="collapsed" desc="31、字符串操作大全">
+
 /// String 是一个引用类型，本身也是一个 class。因为字符串太常用 Java 对 String 有特殊处理，可以用 "..." 表示一个字符串。
 /// String s1 = "Hello";
 /// 实际上字符串在 String 内部是通过 char[] 来表示的，因此下面写法也是可以的
@@ -1691,5 +1787,210 @@ class StringFunc {
         System.out.println(ss.replaceAll("[\\,\\;\\s]+", ",")); // "A,B,C,D"
 
         /// 31.7、分割字符串
+        String sss = "A,B,C,D";
+        String[] sssArray = sss.split("\\,"); // { "A", "B", "C", "D" }
+        System.out.println(Arrays.toString(sssArray));
+
+        /// 31.8、拼接字符串
+        String[] arr = { "A", "B", "C" };
+        System.out.println(String.join("***", arr));
+
+        /// 31.9、格式化字符串，格式化输出参考 8.1 节（格式化输出）
+        String formatStr = "Hi %s, your score is %d!";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            System.out.println(formatStr.formatted("Alice", 80));
+        }
+        System.out.println(String.format("Hi %s, your score is %.2f!", "Bob", 59.5));
+
+        /// 31.10、类型转换，任意基本类型或引用类型转换为字符串
+        String.valueOf(123); // 123
+        String.valueOf(45.67); // "45.67"
+        String.valueOf(true); // "true"
+        String.valueOf(new Object()); // 类似java.lang.Object@636be97c
+
+        /// 31.10.1、把字符串转换为其他类型
+        // 转为 int 类型
+        int n1 = Integer.parseInt("123"); // 123
+        int n2 = Integer.parseInt("ff", 16); // 十六进制转换，255
+        // 转换为 boolean 类型
+        boolean b1 = Boolean.parseBoolean("true"); // true
+        boolean b2 = Boolean.parseBoolean("false");  // false
+        System.out.println(Boolean.parseBoolean("TRUE")); // true
+        System.out.println(Boolean.parseBoolean("TruE")); // true
+        System.out.println(Boolean.parseBoolean("FALSE")); // false
+        System.out.println(Boolean.parseBoolean("YES")); // false，识别不了的字符串都是false
+
+        /// 31.11、与 char[] 互相转换
+        char[] cs = "Hello".toCharArray(); // String -> char[]
+        String csStr = new String(cs);     // char[] -> String
+        System.out.println(csStr);
+        // 修改了 char[] 数组， String 并不会改变
+        // 这是因为通过 new String(cs) 创建新的 String 实例时，它并不会直接引用传入的 char[]，而是会复制一份
+        cs[0] = 'X';
+        System.out.println(csStr);
+
+        /// 31.11.1、如果传入的对象有可能改变，我们需要复制而不是直接引用
+        int[] scores = new int[] { 88, 77, 51, 66 };
+        Score sc = new Score(scores);
+        sc.printScores(); // [88, 77, 51, 66]
+        scores[2] = 99;
+        sc.printScores(); // [88, 77, 99, 66]，这不是一个安全的设计
+
+        /// 31.12、字符编码，在Java内存中String和char总是以Unicode编码表示
+        ///
+        /// ASCII，美国国家标准学会制定了一套英文字母、数字和常用符号的编码，它占用1个字节，编码范围从0-127，最高位始终为0
+        /// GB2312，要把汉字纳入计算机编码，很显然一个字节是不够的，GB2312使用2字节表示一个汉字，其中第一个字节的最高位始终为1，以便和 ASCII 编码区分开。
+        /// Unicode，为了统一全球所有语言的编码，全球统一码联盟发布了Unicode编码，它把世界上主要语言都纳入同一个编码，这样中文、日文、韩文和其他语言就不会冲突。编码需要两个或者更多字节表示。
+        /// UTF-8，因为英文字符的Unicode编码高字节总是00，大量英文文本会浪费空间，所以出现了UTF-8编码。
+        ///        它是一种变长编码，用来把固定长度的Unicode编码变成1~4字节的变长编码。
+        ///        UTF-8编码的另一个好处是容错能力强。如果传输过程中某些字符出错，不会影响后续字符，
+        ///        因为UTF-8编码依靠高字节位来确定一个字符究竟是几个字节，它经常用来作为传输编码。
+        byte[] b1Str = "Hello".getBytes(); // 按系统默认编码转换，不推荐
+//        byte[] b2Str = "Hello".getBytes("UTF-8"); // 按UTF-8编码转换
+//        byte[] b3Str = "Hello".getBytes("GBK"); // 按GBK编码转换
+        /// 转换为 byte[] 优先考虑UTF-8编码
+        byte[] b4Str = "Hello".getBytes(StandardCharsets.UTF_8); // 按UTF-8编码转换
+        // 把已知的 byte[] 转换为 String
+        System.out.println(new String(b4Str, StandardCharsets.UTF_8));
+
+        // 对于不同版本的JDK，String 类在内存中有不同的优化方式。
+        // 具体来说，早期JDK版本的 String 总是以 char[] 存储
+        // public final class String {
+        //    private final char[] value;
+        //    private final int offset;
+        //    private final int count;
+        // }
+        //
+        // 而较新的JDK版本 String 则以 byte[] 存储。如果 String 仅包含 ASCII 字符，则每个 byte 存储一个字符，
+        // 否则，每两个 byte 存储一个字符。
+        // public final class String {
+        //    private final byte[] value;
+        //    private final byte coder; // 0 = LATIN1, 1 = UTF16
+        // }
     }
 }
+
+class Score {
+    private int[] scores;
+    public Score(int[] scores) {
+        this.scores = scores; // 这不是一个安全的设计
+
+        /*
+        if (scores == null) {
+            this.scores = new int[0];
+        } else {
+//            this.scores = Arrays.copyOf(scores, scores.length);
+            // 性能略优，底层native方法
+            this.scores = new int[scores.length];
+            System.arraycopy(scores, 0, this.scores, 0, scores.length);
+        }
+        */
+    }
+
+    public void printScores() {
+        System.out.println(Arrays.toString(scores));
+    }
+
+    // 示例：安全的获取数组方法
+    public int[] getScores() {
+        return Arrays.copyOf(this.scores, this.scores.length);
+    }
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="31.12、可变字符串 StringBuilder 和 链式方法">
+
+/**
+ * 31.12、StringBuilder（可变字符串）
+ */
+class StringBuilderFunc {
+    static void func() {
+        // Java编译器对 String 做了特殊处理，使得我们可以直接用 + 拼接字符串。
+//        String s = "";
+//        for (int i = 0; i < 1000; i++) {
+//            s = s + "," + i;
+//        }
+        // 虽然可以直接拼接字符串，但是，在循环中，每次循环都会创建新的字符串对象，然后扔掉旧的字符串。
+        // 这样，绝大部分字符串都是临时对象，不但浪费内存，还会影响GC效率。
+        //
+        // 注意⚠️
+        // 对于普通的字符串 + 操作，并不需要我们将其改写为 StringBuilder，因为Java编译器在编译时就自动把多个连续的 + 操作
+        // 编码为 StringConcatFactory 的操作。在运行期，StringConcatFactory 会自动把字符串连接操作优化为数组复制或者 StringBuilder 操作
+        //
+        // 你可能还听说过 StringBuffer，这是Java早期的一个 StringBuilder 线程安全版本，它通过同步来保证多个线程操作
+        // StringBuffer 也是安全的，但是同步会带来执行速度的下降。现在很少使用。
+
+        /// 为了能高效拼接字符串，Java标准库提供了 StringBuilder，它是一个可变对象，可以预分配缓冲区，
+        /// 这样，往 StringBuilder 中新增字符时，不会创建新的临时对象
+        StringBuilder sb = new StringBuilder(1024);
+        /// 支持链式操作
+        sb.append("Mr ")
+                .append("Bob")
+                .append("!")
+                .insert(0, "Hello, ");
+        for (int i = 0; i < 10; i++) {
+            sb.append(',');
+            sb.append(i);
+        }
+        System.out.println(sb.toString());
+
+        // 自定义链式方法
+        Adder adder = new Adder();
+        adder.add(5)
+                .inc()
+                .add(4);
+        System.out.println(adder.value());
+    }
+}
+
+/// 31.12.1、自定义链式方法
+class Adder {
+    private int sum = 0;
+    public Adder add(int n) {
+        sum += n;
+        return this;
+    }
+    public Adder inc() {
+        sum ++;
+        return this;
+    }
+    public int value() {
+        return sum;
+    }
+}
+
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="31.13、StringJoiner 分隔符拼接字符串数组">
+
+/**
+ * 31.13、StringJoiner, 分隔符拼接字符串数组
+ */
+class StringJoinerFunc {
+    static void func() {
+        // 要高效拼接字符串，应该使用 StringBuilder
+        String[] names = { "Bob", "Alice", "Grace" };
+//        var sb = new StringBuilder();
+//        sb.append("Hello ");
+//        for (String name : names) {
+//            sb.append(name).append(", ");
+//        }
+//        // 注意去掉最后的", "
+//        sb.delete(sb.length() - 2, sb.length());
+//        sb.append("!");
+        // 类似上面用分隔符拼接数组的需求很常见，所以Java标准库还提供了一个 StringJoiner 来干这个事
+        var sj = new StringJoiner(",", "Hello ", "!");
+        for (String name : names) {
+            sj.add(name);
+        }
+        System.out.println(sj.toString());
+
+        /// 31.13.1、String.join()
+        /// 这个方法在内部使用了 StringJoiner 来拼接字符串，在不需要指定“开头”和“结尾”的时候用这个更方便
+        var s = String.join("-", names);
+        System.out.println(s);
+    }
+}
+// </editor-fold>
+
+// JavaBean
