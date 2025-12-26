@@ -4,10 +4,19 @@ import android.os.Build;
 
 import com.example.learnjava.package_sample.PersonT;
 
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HexFormat;
+import java.util.Objects;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.StringJoiner;
 
@@ -20,7 +29,8 @@ import java.util.StringJoiner;
 /// Java只允许一个class继承自一个类，因此一个类有且仅有一个父类。只有 Object 特殊，它没有父类。
 public class Hello {
     public static void main(String[] args) {
-        helloWorld();
+        System.out.println("惯例：Hello World!");
+        ThrowableFunc.func();
     }
 
     // 1、变量
@@ -98,7 +108,7 @@ public class Hello {
      * 引用类型可以赋值为 null，表示空，但基本类型不能赋值为 null。
      * 引用类型不能用 == 比较，只能用 equals()
      */
-    static void helloWorld() {
+    static void classFunc() {
         String s = "惯例：Hello World!";
         System.out.println(s);
 
@@ -108,7 +118,12 @@ public class Hello {
         String s2 = s1; // s2也是null
         String s3 = ""; // s3指向空字符串，不是null
         // 注意要区分空值 null 和空字符串 "" ，空字符串是一个有效的字符串对象，它不等于 null 。
+    }
+    // </editor-fold>
 
+    // <editor-fold defaultstate="collapsed" desc="1.2.2、包装类型(Integer、Float、Boolean等)">
+
+    static void wrapperClassFunc() {
         /// 1.2.2、包装类型(Wrapper Class)
         ///
         /// public final class Integer {
@@ -196,6 +211,253 @@ public class Hello {
         byte yyy = 127;
         System.out.println(Byte.toUnsignedInt(xxx)); // 255
         System.out.println(Byte.toUnsignedInt(yyy)); // 127
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="1.2.2.5、任意大小包装类型(BigInteger、BigDecimal)">
+
+    /// 任意大小包装类型
+    ///
+    /// 1.2.2.5、BigInteger 不会有范围限制，但缺点是速度比较慢
+    static void bigIntegerFunc() {
+        // 如果我们使用的整数范围超过了 long 型怎么办? 这个时候，就只能用软件来模拟一个大整数。
+        // java.math.BigInteger 就是用来表示任意大小的整数。
+        // BigInteger 内部用一个 int[] 数组来模拟一个非常大的整数
+        BigInteger bi = new BigInteger("2");
+        System.out.println(bi.pow(5)); // 幂
+        // 对 BigInteger 做运算的时候，只能使用实例方法，例如 +
+        System.out.println(bi.add(BigInteger.valueOf(10)));
+
+//        bi.longValue(); // 可以把 BigInteger 转换成基本类型 doubleValue() 等
+        // 如果 BigInteger 表示的范围超过了基本类型的范围，转换时将丢失高位信息，即结果不一定是准确的。
+        // 如果需要准确地转换成基本类型，可以使用 longValueExact() 等方法
+//        bi.longValueExact(); // 如果超出了 long 型的范围，会抛出 ArithmeticException
+
+        // 如果 BigInteger 的值甚至超过了 float 的最大范围(3.4x10^38)
+        BigInteger n = new BigInteger("999999").pow(99);
+        float f = n.floatValue();
+        System.out.println(f); // Infinity
+    }
+
+    /// 1.2.2.5.1、BigDecimal
+    static void bigDecimalFunc() {
+        BigDecimal bd = new BigDecimal("123.4567");
+        System.out.println(bd.multiply(bd)); // 15241.55677489
+
+        BigDecimal d1 = new BigDecimal("123.45");
+        BigDecimal d2 = new BigDecimal("123.4500");
+        BigDecimal d3 = new BigDecimal("1234500");
+        // scale() 表示小数位数
+        System.out.println(d1.scale()); // 2位小数位数
+        System.out.println(d2.scale()); // 4
+        System.out.println(d3.scale()); // 0
+
+        BigDecimal d11 = new BigDecimal("123.4500");
+        // stripTrailingZeros() 可以将一个 BigDecimal 格式化为一个相等的，但去掉了末尾0的 BigDecimal
+        BigDecimal d22 = d1.stripTrailingZeros();
+        System.out.println(d11.scale()); // 4
+        System.out.println(d22.scale()); // 2, 因为去掉了00
+
+        BigDecimal d33 = new BigDecimal("1234500");
+        BigDecimal d44 = d33.stripTrailingZeros();
+        System.out.println(d33.scale()); // 0
+        // 如果一个 BigDecimal 的 scale() 返回负数，如 -2 表示这个数是个整数，并且末尾有2个0
+        System.out.println(d44.scale()); // -2
+
+        /// 可以对一个 BigDecimal 设置它的 scale，如果精度比原始值低，那么按照指定的方法进行四舍五入或者直接截断:
+        BigDecimal d111 = new BigDecimal("123.456789");
+        BigDecimal d222 = d111.setScale(4, RoundingMode.HALF_UP); // 四舍五入， 123.4568
+        BigDecimal d333 = d111.setScale(4, RoundingMode.DOWN); // 直接截断， 123.4567
+        System.out.println(d222);
+        System.out.println(d333);
+
+        /// 对 BigDecimal 做加、减、乘时，精度不会丢失，
+        /// 但是做除法时，存在无法除尽的情况，这时，就必须指定精度以及如何进行截断:
+        BigDecimal d1111 = new BigDecimal("123.456");
+        BigDecimal d2222 = new BigDecimal("23.456789");
+//        BigDecimal d4444 = d1111.divide(d2222); // 报错:ArithmeticException，因为除不尽
+        BigDecimal d3333 = d1111.divide(d2222, 10, RoundingMode.HALF_UP); // 保留10位小数并四舍五入
+        System.out.println(d3333);
+
+        /// 还可以对 BigDecimal 做除法的同时求余数
+        BigDecimal n = new BigDecimal("12.345");
+        BigDecimal m = new BigDecimal("0.12");
+        // 调用 divideAndRemainder() 方法时，返回的数组包含两个 BigDecimal，分别是商和余数
+        BigDecimal[] dr = n.divideAndRemainder(m);
+        System.out.println(dr[0]); // 商   102.0，商总是整数
+        System.out.println(dr[1]); // 余数 0.105，余数不会大于除数 m
+
+        /// 我们可以利用这个方法判断两个 BigDecimal 是否是整数倍数:
+        BigDecimal n1 = new BigDecimal("1.0");
+        BigDecimal m1 = new BigDecimal("0.25");
+        BigDecimal[] dr1 = n1.divideAndRemainder(m1);
+        if (dr1[1].signum() == 0) {
+            System.out.println("n1是m1的整倍数");
+        } else {
+            System.out.println("n1不是m1的整倍数");
+        }
+
+        /// 比较 BigDecimal
+        // 在比较两个 BigDecimal 的值是否相等时，要特别注意，使用 equals() 方法不但要求两个BigDecimal 的值相等，还要求它们的 scale() 相等:
+        BigDecimal d11111 = new BigDecimal("123.456");
+        BigDecimal d22222 = new BigDecimal("123.45600");
+        System.out.println(d11111.equals(d22222)); // false
+        System.out.println(d11111.equals(d22222.stripTrailingZeros())); // true
+        /// 必须使用 compareTo() 方法来比较，0代表相等，-1代表小于，1代表大于
+        System.out.println(d11111.compareTo(d22222)); // 0 = 相等, -1 = d1 < d2, 1 = d1 > d2
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="1.2.3、枚举类">
+    /// 1.2.3、枚举类，枚举类是一种引用类型
+    ///
+    /// 前面我们讲到，引用类型比较，要使用 equals() 方法，但 enum 类型可以例外。
+    /// 这是因为 enum 类型的每个常量在JVM中只有一个唯一实例，所以可以直接用 == 比较。
+    ///
+    /// 通过 enum 定义的枚举类，和其他的 class 有什么区别?
+    /// - 定义的 enum 类型总是继承自 java.lang.Enum ，且无法被继承；
+    /// - 只能定义出 enum 的实例，而无法通过 new 操作符创建 enum 的实例;
+    /// - 定义的每个实例都是引用类型的唯一实例;
+    /// - 可以将 enum 类型用于 switch 语句。
+    enum Color {
+        RED(100, "红色"),
+        GREEN(101, "绿色"),
+        BLUE(102, "蓝色");
+
+        // 编译器编译出的 class 大概就像这样，所以，编译后的 enum 类和普通 class 并没有任何区别。
+        /*
+        // 继承自Enum，标记为final class // 每个实例均为全局唯一:
+        public final class Color extends Enum {
+            public static final Color RED = new Color();
+            public static final Color GREEN = new Color();
+            public static final Color BLUE = new Color();
+            // private构造方法，确保外部无法调用new操作符:
+            private Color() {}
+        }
+        */
+
+        /// 枚举类的字段也可以是非final类型，即可以在运行期修改，但是不推荐这样做!
+        public final int value;
+        private final String chinese;
+
+        private Color(int value, String chinese) {
+            this.value = value;
+            this.chinese = chinese;
+        }
+
+        /// 默认情况下，对枚举常量调用 toString() 会返回和 name() 一样的字符串。
+        ///
+        /// 但是 toString() 可以被复写，name() 则不行
+        @Override
+        public String toString() {
+            return this.chinese;
+        }
+    }
+
+    static void enumFunc() {
+        Color color = Color.RED;
+        if (color == Color.RED) {
+            System.out.println("红色!");
+        }
+        System.out.println(color.name()); // 返回常量名 "RED"
+        System.out.println(color.ordinal()); // 返回常量顺序 0
+        /// 改变枚举常量定义的顺序就会导致 ordinal() 返回值发生变化
+        /// 但是，如果不小心修改了枚举的顺序，编译器是无法检查出这种逻辑错误的。
+        /// 要编写健壮的代码，就不要依靠 ordinal() 的返回值。因为 enum 本身是 class ，
+        /// 所以我们可以定义 private 的 构造方法，并且，给每个枚举常量添加字段
+        System.out.println(color.value);
+        System.out.println(color.toString());
+
+        switch (color) {
+            case RED:
+                System.out.println("红色!!");
+                break;
+            case BLUE:
+                System.out.println("蓝色!!");
+                break;
+            case GREEN:
+                System.out.println("绿色!!");
+                break;
+            default:
+                throw new RuntimeException("cannot process" + color);
+        }
+
+        switch (color) {
+            case RED -> System.out.println("红色!!");
+            case BLUE -> System.out.println("蓝色!!");
+            case GREEN -> System.out.println("绿色!!");
+            default -> throw new RuntimeException("cannot process" + color);
+        }
+    }
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="1.2.4、记录类 Data Class">
+
+    /// 1.2.4、记录类 Data Class
+    ///
+    /// 使用 String、 Integer 等包装类型的时候，这些类型都是不变类，一个不变类具有以下特点:
+    /// - 定义 class 时使用 final，无法派生子类;
+    /// - 每个字段使用 final，保证创建实例后无法修改任何字段。
+    final class Point {
+        private final int x;
+        private final int y;
+
+        public Point(int x, int y) {
+            // 这是我们编写的Compact Constructor:
+            if (x < 0 || y < 0) {
+                throw new IllegalArgumentException();
+            }
+            this.x = x;
+            this.y = y;
+        }
+
+        public int x() {
+            return this.x;
+        }
+        public int y() {
+            return this.y;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Point[x=%s, y=%s]", x, y);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Point p) {
+                return (this.x == p.x) && (this.y == p.y);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
+        }
+    }
+
+    /// 1.2.4.1、Java 14 开始，引入 Record 类
+    record PointData(int x, int y) {
+        /// 1.2.4.2、编写Compact Constructor对参数进行验证
+        ///
+        /// 编译器默认按照 record 声明的变量顺序自动创建一个构造方法，并在方法内给字段赋值。
+        ///
+        /// 那么问题来了，如果我们要检查参数，应该怎么办?
+        public PointData {
+            if (x < 0 || y < 0) {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        /// 1.2.4.3、一种常用的静态方法 of()，用来创建 PointData 实例
+        public static PointData of(int x, int y) {
+            return new PointData(x, y);
+        }
+
+        public static PointData of() {
+            return of(0, 0);
+        }
     }
     // </editor-fold>
 
@@ -722,7 +984,7 @@ public class Hello {
                 System.out.println("Selected other");
                 break;
         }
-        /// 使用 switch 语句时，只要保证有 break ， case 的顺序不影响程序逻辑
+        /// 使用 switch 语句时，只要保证有 break，case 的顺序不影响程序逻辑
         /// 但是仍然建议按照自然顺序排列，便于阅读。
         switch (option) {
             case 1:
@@ -1993,4 +2255,220 @@ class StringJoinerFunc {
 }
 // </editor-fold>
 
-// JavaBean
+// <editor-fold defaultstate="collapsed" desc="32、JavaBean">
+
+/// 32、JavaBean
+/// 在Java中，有很多 class 的定义都符合这样的规范：
+/// - 若干 private 实例字段;
+/// - 通过 public 方法来读写实例字段。
+class PersonJavaBean {
+    /// 我们通常把一组对应的读方法( getter )和写方法( setter )称为属性( property )，如 name 属性
+    private String name;
+    /// boolean 字段比较特殊，它的getter方法一般命名为 isXyz()
+    private boolean child;
+    /// 只有 getter 的属性称为只读属性(read-only)，只读属性很常见
+    private int age;
+    /// 只有 setter 的属性称为只写属性(write-only)，只写属性不常见
+    private String nickname;
+
+    /// getter方法 getXyz
+    public String getName() { return this.name; }
+    /// setter方法 setXyz
+    public void setName(String name) { this.name = name; }
+
+    public boolean isChild() { return child; }
+    public void setChild(boolean child) { this.child = child; }
+
+    public int getAge() { return age; }
+
+    public void setNickname(String nickname) { this.nickname = nickname; }
+
+    /// 属性只需要定义 getter 和 setter 方法，不一定需要对应的字段。
+    public boolean isAdult() { return age >= 18; }
+
+    /*
+    // 枚举JavaBean属性，Android 的 Java 不支持
+
+    static void func() {
+        // import java.beans.*;
+        BeanInfo info = Introspector.getBeanInfo(PersonJavaBean.class); // 注意 class 属性是从 Object 继承 的 getClass() 方法带来的。
+        for (PropertyDescriptor pd : info.getPropertyDescriptors()) {
+            System.out.println(pd.getName());
+            System.out.println("  " + pd.getReadMethod());
+            System.out.println("  " + pd.getWriteMethod());
+        }
+    }
+    */
+}
+
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="33、常用工具类(Math、HexFormat、Ramdom、SecureRandom)">
+/// 33、常用工具类
+class ToolFunc {
+    /// 33.1、Math
+    ///
+    /// Java标准库还提供了一个 StrictMath，它提供了和 Math 几乎一模一样的方法。这两个类的区别在于，由于浮点数计算存在误差，
+    /// 不同的平台(例如x86和ARM)计算的结果可能不一致(指误差不同)，因此，StrictMath 保证所有平台计算结果都是完全相同的。
+    /// 而 Math 会尽量针对平台优化计算速度，所以，绝大多数情况下，使用 Math 就足够了。
+    static void mathFunc() {
+        /// 绝对值
+        Math.abs(-100);    // 100
+        Math.abs(-1.2f); // 1.2
+
+        /// 取最大或最小值
+        Math.max(100, 99);  // 100
+        Math.min(1.2, 2.3); // 1.2
+
+        /// 计算x^y次方
+        Math.pow(2, 10); // 2的10次方=1024
+
+        /// 计算√￣x
+        Math.sqrt(2); // 1.414...
+
+        /// 计算e^x次方
+        Math.exp(2); // 7.389...
+
+        /// 计算以e为底的对数
+        Math.log(4); // 1.386...
+
+        /// 计算以10为底的对数:
+        Math.log10(100); // 2
+
+        /// 三角函数
+        Math.sin(3.14); // 0.00159...
+        Math.cos(3.14); // -0.9999...
+        Math.tan(3.14); // -0.0015...
+        Math.asin(1.0); // 1.57079...
+        Math.acos(1.0); // 0.0
+
+        /// Math还提供了几个数学常量
+        double pi = Math.PI; // 3.14159...
+        double e = Math.E; // 2.7182818...
+        Math.sin(Math.PI / 6); // sin(π/6) = 0.5
+
+        /// 生成一个随机数x，x的范围是 0 <= x < 1，[0,1)
+        Math.random(); // 0.53907... 每次都不一样
+
+        /// 如果我们要生成一个区间在 [MIN, MAX) 的随机数，可以借助 Math.random() 实现，计算如下：
+        double x = Math.random(); // x的范围是[0,1)
+        double min = 10;
+        double max = 50;
+        double y = x * (max - min) + min; // y的范围是[10,50)
+    }
+
+    /// 33.2、HexFormat
+    ///
+    /// 处理 byte[] 数组时，我们经常需要与十六进制字符串转换，自己写起来比较麻烦，用Java标准库提供的 HexFormat 则可以方便地帮我们转换。
+    static void hexFormat() {
+        byte[] data = "Hello".getBytes();
+        HexFormat hf = HexFormat.of();
+        String hexData = hf.formatHex(data); // 48656c6c6f
+        System.out.println(hexData);
+
+        /// 定制转换格式
+        HexFormat hf1 = HexFormat.ofDelimiter(" ").withPrefix("0x").withUpperCase();
+        System.out.println(hf1.formatHex(data)); //0x48 0x65 0x6C 0x6C 0x6F
+
+        /// 从十六进制字符串 转换 byte[] 数组
+        byte[] bs = HexFormat.of().parseHex("48656c6c6f");
+        System.out.println(new String(bs));
+    }
+
+    /// 33.3、Random
+    ///
+    /// Random 用来创建伪随机数。所谓伪随机数，是指只要给定一个初始的种子，产生的随机数序列是完全一样的。
+    static void randomFunc() {
+        Random r = new Random();
+//        System.out.println(r.nextInt()); // 每次都不一样
+        System.out.println(r.nextInt(10)); // 生成一个[0,10)之间的int，必须填入正数，填负数报错
+
+        /// 有童鞋问，每次运行程序，生成的随机数都是不同的，没看出 伪随机数 的特性来。
+        /// 这是因为我们创建 Random 实例时，如果不给定种子，就使用系统当前时间戳作为种子，因此每次运行时，种子不同，得到的伪随机数序列就不同。
+        ///
+        /// 前面我们使用的 Math.random() 实际上内部调用了 Random 类，所以它也是伪随机数，只是我们无法指定种子。
+        Random r1 = new Random(12345);
+        for (int i = 0; i < 10; i++) {
+            System.out.println(r.nextInt(100));
+        }
+        
+        /// 33.3.1、SecureRandom，安全随机数
+        ///
+        /// 有伪随机数，就有真随机数。实际上真正的真随机数只能通过量子力学原理来获取，而我们想要的是一个不可预测的安全的随机数
+        ///
+        /// SecureRandom 无法指定种子，它使用RNG(random number generator)算法。JDK的 SecureRandom 实际上有多种不同的底层实现，
+        /// 有的使用安全随机种子加上伪随机数算法来产生安全的随机数，
+        /// 有的使用真正的随机数生成器。实际使用的时候，可以优先获取高强度的安全随机数生成器，如果没有提供，再使用普通等级的安全随机数生成器
+        ///
+        /// 在密码学中，安全的随机数非常重要。如果使用不安全的伪随机数，所有加密体系都将被攻破。因此，时刻牢记必须使用 SecureRandom 来产生安全的随机数。
+        SecureRandom sr = null;
+        try {
+            sr = SecureRandom.getInstanceStrong(); // 获取高强度安全随机数生成器
+        } catch (NoSuchAlgorithmException e) {
+            sr = new SecureRandom(); // 获取普通的安全随机数生成器
+        }
+        byte[] buffer = new byte[16];
+        sr.nextBytes(buffer); // 用安全随机数填充buffer
+        System.out.println(Arrays.toString(buffer));
+    }
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="34、异常">
+
+/// 34、异常
+///
+/// 异常 Throwable 目前有2个体系
+///
+/// 1. Error 表示严重的错误，程序对此一般无能为力，例如：
+///    - OutOfMemoryError：内存耗尽
+///    - NoClassDefFoundError：无法加载某个Class
+///    - StackOverflowError：栈溢出
+/// 1. Exception 则是运行时的错误，它可以被捕获并处理。
+///    - 某些异常是应用程序逻辑处理的一部分，应该捕获并处理，例如：
+///      - NumberFormatException：数值类型的格式错误
+///      - FileNotFoundException：未找到文件
+///      - SocketException：读取网络失败
+///    - 还有一些异常是程序逻辑编写不对造成的，应该修复程序本身。例如:
+///      - NullPointerException：对某个 null 的对象调用方法或字段
+///      - IndexOutOfBoundsException：数组索引越界
+///
+/// Exception 又分为两大类：
+/// - RuntimeException 以及它的子类；
+/// - 非 RuntimeException (包括 IOException、ReflectiveOperationException 等等)
+///
+/// Java规定:
+/// - 必须捕获的异常，包括 Exception 及其子类，但不包括 RuntimeException 及其子类，这种类型的异常称为Checked Exception。
+/// - 不需要捕获的异常，包括 Error 及其子类，RuntimeException 及其子类。
+class ThrowableFunc {
+    static void func() {
+        byte[] bs = toGBK("中文");
+        System.out.println(Arrays.toString(bs));
+
+        try {
+            byte[] bs1 = toGBKThrows("中文");
+            System.out.println(Arrays.toString(bs1));
+        } catch (UnsupportedEncodingException e) {
+            /// 捕获异常后不处理的方式是非常不好的，即使真的什么也做不了，也要先把异常记录下来
+            ///
+            /// 所有异常都可以调用 printStackTrace() 方法打印异常栈，这是一个简单有用的快速打印异常的方法。
+            e.printStackTrace();
+        }
+    }
+
+    static byte[] toGBK(String s) {
+        try {
+            return s.getBytes("GBK");
+        } catch (UnsupportedEncodingException e) {
+            // 如果系统不支持GBK编码，会捕获到UnsupportedEncodingException:
+            e.printStackTrace();
+            return s.getBytes(); // 尝试使用默认编码
+        }
+    }
+
+    static byte[] toGBKThrows(String s) throws UnsupportedEncodingException {
+        return s.getBytes("GBK");
+    }
+}
+// 捕获异常
+// </editor-fold>
