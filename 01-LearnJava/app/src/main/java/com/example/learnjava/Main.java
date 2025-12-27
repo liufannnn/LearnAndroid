@@ -1,20 +1,14 @@
 package com.example.learnjava;
 
-import android.os.Build;
-
 import com.example.learnjava.package_sample.PersonT;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Scanner;
@@ -27,10 +21,10 @@ import java.util.StringJoiner;
 /// 所以除了 Object，任何类都会继承自某个类。
 ///
 /// Java只允许一个class继承自一个类，因此一个类有且仅有一个父类。只有 Object 特殊，它没有父类。
-public class Hello {
+public class Main {
     public static void main(String[] args) {
         System.out.println("惯例：Hello World!");
-        ThrowableFunc.func();
+        AssertFunc.func();
     }
 
     // 1、变量
@@ -917,7 +911,7 @@ public class Hello {
         }
         System.out.println("END");
 
-        /// 9.2 在串联使用多个 if 时，要特别注意判断顺序
+        /// 9.2 在串联使用多个 if 时，从上到下匹配，匹配后不再继续匹配，要特别注意判断顺序
         // 正确的方式是 > 按照判断范围从大到小，< 从小到大依次判断
         n = 100;
         if (n >= 60) {
@@ -964,7 +958,7 @@ public class Hello {
 
     // <editor-fold defaultstate="collapsed" desc="10、switch条件语句">
     /**
-     * switch条件语句
+     * switch条件语句，从上到下匹配
      * @case case语句没有花括号{}，而且case语句具有穿透性，漏写break将导致意想不到的结果
      */
     static void switchMethod() {
@@ -1265,9 +1259,9 @@ public class Hello {
     static void commandLineParameters(String[] args) {
         // 这个命令行参数由JVM接收用户输入并传给 main 方法
         // 必须在命令行中执行，先编译
-        // javac Hello.java
+        // javac Main.java
         // 执行的时候，给它传递一个 -version 参数
-        // java Hello.java -version
+        // java Main.java -version
         for (String arg : args) {
             if ("-version".equals(arg)) {
                  System.out.println("v 1.0");
@@ -1458,7 +1452,6 @@ class MethodOverload {
         }
     }
 }
-
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="21、继承">
@@ -1710,7 +1703,6 @@ final class Person4 {
         return "Hello，" + this.name;
     }
 }
-
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="25、抽象类 abstract class">
@@ -2059,9 +2051,7 @@ class StringFunc {
 
         /// 31.9、格式化字符串，格式化输出参考 8.1 节（格式化输出）
         String formatStr = "Hi %s, your score is %d!";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            System.out.println(formatStr.formatted("Alice", 80));
-        }
+//        System.out.println(formatStr.formatted("Alice", 80));
         System.out.println(String.format("Hi %s, your score is %.2f!", "Bob", 59.5));
 
         /// 31.10、类型转换，任意基本类型或引用类型转换为字符串
@@ -2300,7 +2290,6 @@ class PersonJavaBean {
     }
     */
 }
-
 // </editor-fold>
 
 // <editor-fold defaultstate="collapsed" desc="33、常用工具类(Math、HexFormat、Ramdom、SecureRandom)">
@@ -2361,18 +2350,19 @@ class ToolFunc {
     ///
     /// 处理 byte[] 数组时，我们经常需要与十六进制字符串转换，自己写起来比较麻烦，用Java标准库提供的 HexFormat 则可以方便地帮我们转换。
     static void hexFormat() {
-        byte[] data = "Hello".getBytes();
-        HexFormat hf = HexFormat.of();
-        String hexData = hf.formatHex(data); // 48656c6c6f
-        System.out.println(hexData);
-
-        /// 定制转换格式
-        HexFormat hf1 = HexFormat.ofDelimiter(" ").withPrefix("0x").withUpperCase();
-        System.out.println(hf1.formatHex(data)); //0x48 0x65 0x6C 0x6C 0x6F
-
-        /// 从十六进制字符串 转换 byte[] 数组
-        byte[] bs = HexFormat.of().parseHex("48656c6c6f");
-        System.out.println(new String(bs));
+//        byte[] data = "Hello".getBytes();
+//        HexFormat hf = null;
+//        hf = HexFormat.of();
+//        String hexData = hf.formatHex(data); // 48656c6c6f
+//        System.out.println(hexData);
+//
+//        /// 定制转换格式
+//        HexFormat hf1 = HexFormat.ofDelimiter(" ").withPrefix("0x").withUpperCase();
+//        System.out.println(hf1.formatHex(data)); //0x48 0x65 0x6C 0x6C 0x6F
+//
+//        /// 从十六进制字符串 转换 byte[] 数组
+//        byte[] bs = HexFormat.of().parseHex("48656c6c6f");
+//        System.out.println(new String(bs));
     }
 
     /// 33.3、Random
@@ -2401,15 +2391,15 @@ class ToolFunc {
         /// 有的使用真正的随机数生成器。实际使用的时候，可以优先获取高强度的安全随机数生成器，如果没有提供，再使用普通等级的安全随机数生成器
         ///
         /// 在密码学中，安全的随机数非常重要。如果使用不安全的伪随机数，所有加密体系都将被攻破。因此，时刻牢记必须使用 SecureRandom 来产生安全的随机数。
-        SecureRandom sr = null;
-        try {
-            sr = SecureRandom.getInstanceStrong(); // 获取高强度安全随机数生成器
-        } catch (NoSuchAlgorithmException e) {
-            sr = new SecureRandom(); // 获取普通的安全随机数生成器
-        }
-        byte[] buffer = new byte[16];
-        sr.nextBytes(buffer); // 用安全随机数填充buffer
-        System.out.println(Arrays.toString(buffer));
+//        SecureRandom sr = null;
+//        try {
+//            sr = SecureRandom.getInstanceStrong(); // 获取高强度安全随机数生成器
+//        } catch (NoSuchAlgorithmException e) {
+//            sr = new SecureRandom(); // 获取普通的安全随机数生成器
+//        }
+//        byte[] buffer = new byte[16];
+//        sr.nextBytes(buffer); // 用安全随机数填充buffer
+//        System.out.println(Arrays.toString(buffer));
     }
 }
 // </editor-fold>
@@ -2435,11 +2425,30 @@ class ToolFunc {
 ///
 /// Exception 又分为两大类：
 /// - RuntimeException 以及它的子类；
-/// - 非 RuntimeException (包括 IOException、ReflectiveOperationException 等等)
+/// - 非 RuntimeException (包括 IOException、ReflectiveOperationException 等等)。
+///   - 编译器对RuntimeException及其子类不做强制捕获要求，不是指应用程序本身不应该捕获并处理RuntimeException。是否需要捕获，具体问题具体分析。
 ///
 /// Java规定:
 /// - 必须捕获的异常，包括 Exception 及其子类，但不包括 RuntimeException 及其子类，这种类型的异常称为Checked Exception。
 /// - 不需要捕获的异常，包括 Error 及其子类，RuntimeException 及其子类。
+///
+/// Java标准库定义的常用异常：
+///
+/// Exception
+/// ├─ RuntimeException
+/// │  ├─ NullPointerException 空指针异常
+/// │  ├─ IndexOutOfBoundsException
+/// │  ├─ SecurityException
+/// │  └─ IllegalArgumentException
+/// │     └─ NumberFormatException
+/// ├─ IOException
+/// │  ├─ UnsupportedCharsetException
+/// │  ├─ FileNotFoundException
+/// │  └─ SocketException
+/// ├─ ParseException
+/// ├─ GeneralSecurityException
+/// ├─ SQLException
+/// └─ TimeoutException
 class ThrowableFunc {
     static void func() {
         byte[] bs = toGBK("中文");
@@ -2455,7 +2464,6 @@ class ThrowableFunc {
             e.printStackTrace();
         }
     }
-
     static byte[] toGBK(String s) {
         try {
             return s.getBytes("GBK");
@@ -2465,10 +2473,297 @@ class ThrowableFunc {
             return s.getBytes(); // 尝试使用默认编码
         }
     }
-
     static byte[] toGBKThrows(String s) throws UnsupportedEncodingException {
         return s.getBytes("GBK");
     }
+
+    /// 34.1、多 catch 语句
+    ///
+    /// JVM捕获到异常后，从上到下匹配 catch 语句，匹配到某个 catch，然后不再继续匹配
+    /// - 因此 catch 的顺序非常重要：子类必须写在前面
+    static void func1() {
+        /*
+        try {
+             process1();
+             process2();
+             process3();
+        } catch (IOException e) {
+             System.out.println("IO error");
+        } catch (UnsupportedEncodingException e) { // 永远捕获不到，正确写法是 子类 放在前面
+             System.out.println("Bad encoding");
+        }
+        */
+    }
+
+    /// 34.2、finally 语句
+    /// - finally 语句不是必须的，可写可不写
+    /// - finally 总是最后执行
+    ///
+    /// 如果没有发生异常，就正常执行 try { ... } 语句块，然后执行 finally。如果发生了异常，就中断执行 try { ... } 语句块，
+    /// 然后跳转执行匹配的 catch 语句块，最后执行 finally。
+    static void func2() {
+        /*
+        try {
+             process1();
+             process2();
+             process3();
+             System.out.println("无论如何都希望执行的语句");
+        } catch (UnsupportedEncodingException e) {
+             System.out.println("Bad encoding");
+             System.out.println("无论如何都希望执行的语句");
+        } catch (IOException e) {
+             System.out.println("IO error");
+             System.out.println("无论如何都希望执行的语句");
+        }
+        */
+        /// 无论是否有异常发生，如果我们都希望执行一些语句，例如清理工作，怎么写?
+        /// 上面那样写，重复代码太多
+//        try {
+//            process1();
+//            process2();
+//            process3();
+//        } catch (UnsupportedEncodingException e) {
+//            System.out.println("Bad encoding");
+//        } catch (IOException e) {
+//            System.out.println("IO error");
+//        } finally {
+//            System.out.println("无论如何都希望执行的语句");
+//        }
+    }
+
+    /// 34.3、方法声明了可能抛出的异常，所以可以不写 catch
+    static void process(String file) throws IOException {
+        try {
+            // ...
+        } finally {
+            System.out.println("无论如何都希望执行的语句");
+        }
+    }
+
+    /// 34.4、捕获多种异常
+    static void catchingMultipleExceptions() {
+        /*
+        try {
+             process1();
+             process2();
+             process3();
+        } catch (IOException e) {
+             System.out.println("Bad input");
+        } catch (NumberFormatException e) {
+             System.out.println("Bad input");
+        } catch (Exception e) {
+             System.out.println("Unknown error");
+        }
+        */
+        /// IOException 和 NumberFormatException 的代码块是相同的，所以我们可以把它两用 | 合并到一起
+//        try {
+//            process1();
+//            process2();
+//            process3();
+//        } catch (IOException | NumberFormatException e) {
+//            System.out.println("Bad input");
+//        } catch (Exception e) {
+//            System.out.println("Unknown error");
+//        }
+    }
+
+    /// 34.5、异常的传播
+    ///
+    /// 当某个方法抛出了异常时，如果当前方法没有捕获异常，异常就会被抛到上层调用方法，直到遇到某个 try...catch 被捕获为止
+    static void exceptionPropagation() {
+        try {
+            process1();
+        } catch (Exception e) {
+            e.printStackTrace(); // 对于调试错误非常有用
+        }
+    }
+
+    static void process1() {
+        process2();
+    }
+
+    static void process2() {
+        Integer.parseInt(null); // 会抛出NumberFormatException
+    }
+
+    /// 34.6、抛出异常
+    static void throwException() {
+        try {
+            process1(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 这说明新的异常丢失了原始异常信息，我们已经看不到原始异常 NullPointerException 的信息了。
+            // 为了能追踪到完整的异常栈，在构造异常的时候，把原始的 Exception 实例传进去，新的 Exception 就可以持有原始 Exception 信息。对上述代码改进如下:
+            // throw new IllegalArgumentException(e);
+        }
+
+        /// 控制台输出结果：
+        /// catched
+        /// finally
+        /// 异常信息
+        ///
+        /// 第一行打印了 catched ，说明进入了 catch 语句块。第二行打印了 finally ，说明执行了 finally 语句块。
+        /// 因此，在 catch 中抛出异常，不会影响 finally 的执行。JVM会先执行 finally ，然后抛出异常。
+//        try {
+//            Integer.parseInt("abc");
+//        } catch (Exception e) {
+//            System.out.println("catched");
+//            throw new RuntimeException(e);
+//        } finally {
+//            System.out.println("finally");
+//        }
+
+        /// 34.6.1、异常屏蔽
+        ///
+        /// finally 抛出异常后，原来在 catch 中准备抛出的异常就“消失”了，因为只能抛出一个异常。没有被抛出的异常称为“被屏蔽”的异常(Suppressed Exception)。
+//        try {
+//            Integer.parseInt("abc");
+//        } catch (Exception e) {
+//            System.out.println("catched");
+//            throw new RuntimeException(e);
+//        } finally {
+//            System.out.println("finally");
+//            throw new IllegalArgumentException();
+//        }
+
+        /// 34.6.2、保存原始异常，一起抛出
+        /// 但是，在极少数的情况下，我们需要获知所有的异常。
+        ///
+        /// 绝大多数情况下，在 finally 中不要抛出异常。因此，我们通常不需要关心 Suppressed Exception
+//        Exception origin = null;
+//        try {
+//            Integer.parseInt("abc");
+//        } catch (Exception e) {
+//            origin = e;
+//            throw e;
+//        } finally {
+//            Exception e = new IllegalArgumentException();
+//            if (origin != null) {
+//                e.addSuppressed(origin); // 把原始异常添加进来
+//                // e.getSuppressed(); // 可以获取所有的 Suppressed Exception
+//            }
+//            throw e;
+//        }
+    }
+
+    static void process2(String s) {
+        if (s == null) {
+//            NullPointerException e = new NullPointerException();
+//            throw e;
+            throw new NullPointerException(); // 绝大部分抛出异常的代码都会合并写成一行
+        }
+    }
+
+    static void process1(String s) {
+        try {
+            process2(s);
+        } catch (NullPointerException e) {
+            // 如果一个方法捕获了某个异常后，又在 catch 子句中抛出新的异常，就相当于把抛出的异常类型 “转换”了
+//            throw new IllegalArgumentException();
+            /// 在代码中获取原始异常可以使用 Throwable.getCause() 方法。如果返回 null ，说明已经是“根 异常”了。
+            System.out.println(e.getCause()); // null
+            /// 捕获到异常并再次抛出时，一定要留住原始异常，否则很难定位第一案发现场!
+            throw new IllegalArgumentException(e);
+        }
+    }
 }
-// 捕获异常
 // </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="34.7、NullPointerException">
+/// 34.7、NullPointerException
+///
+/// 空指针异常，如果一个对象为 null ，调用其方法或访问其字段就会产生，这个异常通常是由JVM抛出的。
+/// 指针这个概念实际上源自C语言，Java语言中并无指针。我们定义的变量实际上是引用，Null Pointer更确切地说是Null Reference，不过两者区别不大。
+class NullPointerExceptionFunc {
+    /// 如果遇到 NullPointerException，我们应该如何处理?首先，必须明确 NullPointerException 是一种代码逻辑错误。
+    /// 遵循原则是早暴露，早修复，严禁使用 try-catch 来隐藏这种编码错误。
+    ///
+    /// 好的编码习惯可以极大地降低 NullPointerException 产生：
+    /// - 字符串使用 "" 而不是默认的 null
+    /// - 数组使用 XXXClass[0] 而不是默认的 null
+    static String[] func() {
+        String s =  ""; // 变量初始化
+        return new String[0]; // 返回值为空数组
+    }
+
+     static class Person {
+        private String name = ""; // 成员变量初始化
+        String[] names = new String[2];
+        Address address = new Address();
+    }
+
+    /// 34.7.1、如果调用方一定要根据 null 判断，比如返回 null 表示文件不存在，那么考虑返回 Optional<T>
+    ///
+    /// 这样调用方必须通过 Optional.isPresent() 判断是否有结果。
+//    static Optional<String> readFromFile(String file) {
+//        if (!fileExist(file)) {
+//            return Optional.empty();
+//        }
+//        ...
+//    }
+
+    /// 34.7.2、定位 NullPointerException
+    ///
+    /// 如果产生了 NullPointerException，例如，调用 a.b.c.x() 时产生了 ，原因可能是:
+    /// - a 是 null；
+    /// - a.b 是 null；
+    /// - a.b.c 是 null
+    ///
+    /// 确定到底是哪个对象是 null 以前只能打印这样的日志：
+    /// System.out.println(a);
+    /// System.out.println(a.b);
+    /// System.out.println(a.b.c);
+    ///
+    /// 从Java 14开始，如果产生了 NullPointerException，JVM可以给出详细的信息告诉我们 null 对象到底是谁。我们来看例子:
+    static void nullPointerFunc() {
+        Person p = new Person();
+        System.out.println(p.address.city.toLowerCase());
+        /// 这种增强的 NullPointerException 详细信息是Java 14新增的功能，但默认是关闭的，我们可以给JVM添加一个参数启用它：
+        /// java -XX:+ShowCodeDetailsInExceptionMessages Main.java
+    }
+
+    static class Address {
+        String city;
+        String street;
+        String zipcode;
+    }
+}
+// </editor-fold>
+
+// <editor-fold defaultstate="collapsed" desc="34.8、自定义异常">
+
+/// 34.8、自定义异常
+///
+/// 当我们在代码中需要抛出异常时，尽量使用JDK已定义的异常类型。例如，参数检查不合法，应该抛 IllegalArgumentException。
+///
+/// 自定义新的异常类型，一个常见的做法是自定义一个 BaseException 作为“根异常”，然后，派生出各种业务类型的异常。
+/// BaseException 通常建议从 RuntimeException 派生。
+class BaseException extends RuntimeException {
+    public BaseException() {
+        super();
+    }
+
+    public BaseException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public BaseException(String message) {
+        super(message);
+    }
+
+    public BaseException(Throwable cause) {
+        super(cause);
+    }
+}
+// </editor-fold>
+
+/// 35、断言 assert，是一种调试程序的方式
+///
+/// 断言失败时会抛出 AssertionError 导致程序结束退出。因此，断言不能用于可恢复的程序错误，只应该用于开发和测试阶段。
+class AssertFunc {
+    static void func() {
+        double x = Math.abs(-123.45);
+        assert x < 0 : "x must >= 0"; // 可选的断言消息，AssertionError 的时候会带上消息 x must >= 0 ，更加便于调试。
+        System.out.println(x);
+    }
+}
